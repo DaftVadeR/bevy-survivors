@@ -1,11 +1,11 @@
 mod player;
-mod ui;
-mod state;
 mod sprite;
+mod state;
+mod ui;
 
 // pub use crate::player::CharacterLife;
-use ui::GameUiPlugin;
 use player::PlayerPlugin;
+use ui::GameUiPlugin;
 
 use bevy::prelude::*;
 use state::{GameState, GameplayOnly};
@@ -23,7 +23,7 @@ fn main() {
                         title: "Bevy Survivors".into(),
                         resolution: (WIDTH, HEIGHT).into(),
                         resizable: true,
-                        
+
                         ..default()
                     }),
                     ..default()
@@ -31,9 +31,9 @@ fn main() {
                 .build(),
         )
         .add_state::<GameState>()
+        .add_systems(Startup, setup)
         .add_plugins(GameUiPlugin)
         .add_plugins(PlayerPlugin)
-        .add_systems(Startup, setup)
         .add_systems(OnEnter(GameState::GameOver), despawn_game_play)
         .run();
 }
@@ -48,5 +48,3 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle { ..default() });
     // commands.spawn()gcc=
 }
-
-

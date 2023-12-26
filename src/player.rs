@@ -3,9 +3,9 @@
 //     Vec2, Rect, Input, KeyCode, Time, Transform, Sprite, AudioSink, Res, ResMut, NextState, App, Query, SpriteBundle, AudioBundle, Component, Commands, AssetServer, Plugin, Startup
 // }};
 
-use bevy::prelude::*;
+use crate::sprite::{AnimationIndices, Direction, Health, Movable, SpriteSheetAnimatable};
 use crate::state::{GameState, GameplayOnly, PIXEL_TO_WORLD};
-use crate::sprite::{Health, Movable, Direction, SpriteSheetAnimatable, AnimationIndices};
+use bevy::prelude::*;
 
 const PLAYER_SPEED_DEFAULT: f32 = 100.;
 
@@ -14,29 +14,30 @@ pub struct PlayerPlugin;
 #[derive(Component)]
 pub struct CanLevel {
     experience: u64,
-    level: u32,    
+    level: u32,
 }
 
 #[derive(Component)]
-pub struct Player; 
+pub struct Player;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup);
         app.add_systems(Update, animate_sprite);
         app.add_systems(Update, player_movement);
-        
+        app.add_systems(Update, update_camera_from_player_position);
+
         // app.add_systems(Startup, /*OnEnter(GameState::StartingLoop),*/ spawn_player);
-            /*.add_systems(
-                (
-                    player_movement,
-                    player_exp_start_pickup,
-                    player_gain_exp,
-                    player_level_up,
-                    player_game_over,
-                )
-                .in_set(OnUpdate(GameState::Gameplay)),
-            );*/
+        /*.add_systems(
+            (
+                player_movement,
+                player_exp_start_pickup,
+                player_gain_exp,
+                player_level_up,
+                player_game_over,
+            )
+            .in_set(OnUpdate(GameState::Gameplay)),
+        );*/
         // // simple "facilitator" schedules benefit from simpler single threaded scheduling
         // let mut main_schedule = Schedule::new(Main);
         // main_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
@@ -70,7 +71,6 @@ impl Plugin for PlayerPlugin {
 //                 ..default()
 //             },
 
-
 //             // TwoFrameAnimation {
 //             //     frame_1: assets.load("player_1.png"),
 //             //     frame_2: assets.load("player_2.png"),
@@ -89,15 +89,36 @@ impl Plugin for PlayerPlugin {
 //     // commands
 //     //     .spawn((
 //     //         Health(100),
-//     //         Player{}, 
+//     //         Player{},
 //     //     ));
 //         /*.with_children(|parent| {
 //             parent.spawn();
 //         });*/
 // }
 
+pub fn update_camera_from_player_position(
+    query: Query<(&Transform), (With<Player>)>,
+    mut camera_query: Query<(&mut Transform), (With<Camera>, Without<Player>)>,
+) {
+    let player_transform = query.single();
+
+    let mut camera_transform = camera_query.single_mut();
+
+    //
+    camera_transform.translation.x = player_transform.translation.x;
+    camera_transform.translation.y = player_transform.translation.y;
+}
+
 pub fn player_movement(
-    mut player: Query<(&mut Movable, &mut TextureAtlasSprite, &mut Transform, &SpriteSheetAnimatable), With<Player>>,
+    mut player: Query<
+        (
+            &mut Movable,
+            &mut TextureAtlasSprite,
+            &mut Transform,
+            &SpriteSheetAnimatable,
+        ),
+        With<Player>,
+    >,
     input: Res<Input<KeyCode>>,
     time: Res<Time>,
 ) {
@@ -116,16 +137,14 @@ pub fn player_movement(
             sprite.flip_x = false;
             transform.translation.y += diagonal_translation;
             transform.translation.x += diagonal_translation;
-
         } else if input.pressed(KeyCode::A) {
             movable.direction = Direction::UpLeft;
             sprite.flip_x = true;
             transform.translation.y += diagonal_translation;
             transform.translation.x -= diagonal_translation;
-
         } else {
             movable.direction = Direction::Up;
-            transform.translation.y += normal_translation; 
+            transform.translation.y += normal_translation;
         }
         key_pressed = true;
     } else if input.pressed(KeyCode::S) {
@@ -134,25 +153,23 @@ pub fn player_movement(
             movable.direction = Direction::DownRight;
             transform.translation.y -= diagonal_translation;
             transform.translation.x += diagonal_translation;
-
         } else if input.pressed(KeyCode::A) {
             sprite.flip_x = true;
             movable.direction = Direction::DownLeft;
             transform.translation.y -= diagonal_translation;
             transform.translation.x -= diagonal_translation;
-
         } else {
             movable.direction = Direction::Down;
-            transform.translation.y -= normal_translation; 
+            transform.translation.y -= normal_translation;
         }
         key_pressed = true;
     } else if input.pressed(KeyCode::A) {
-        transform.translation.x -= normal_translation; 
+        transform.translation.x -= normal_translation;
         sprite.flip_x = true;
         movable.direction = Direction::Left;
         key_pressed = true;
     } else if input.pressed(KeyCode::D) {
-        transform.translation.x += normal_translation; 
+        transform.translation.x += normal_translation;
         sprite.flip_x = false;
         movable.direction = Direction::Right;
         key_pressed = true;
@@ -165,7 +182,12 @@ pub fn player_movement(
     if movable.is_moving != key_pressed {
         movable.is_moving = key_pressed;
 
-        sprite.index = (if movable.is_moving { &animatable.moving_anim_indices } else { &animatable.idle_anim_indices }).first;
+        sprite.index = (if movable.is_moving {
+            &animatable.moving_anim_indices
+        } else {
+            &animatable.idle_anim_indices
+        })
+        .first;
     }
 }
 
@@ -178,11 +200,15 @@ fn animate_sprite(
         &SpriteSheetAnimatable,
         &mut AnimationTimer,
         &mut TextureAtlasSprite,
-        &Movable
+        &Movable,
     )>,
 ) {
     for (animateable, mut timer, mut sprite, movable) in &mut query {
-        let indices = if !movable.is_moving {&animateable.idle_anim_indices} else {&animateable.moving_anim_indices};
+        let indices = if !movable.is_moving {
+            &animateable.idle_anim_indices
+        } else {
+            &animateable.moving_anim_indices
+        };
 
         timer.tick(time.delta());
         if timer.just_finished() {
@@ -246,6 +272,6 @@ fn setup(
         CanLevel {
             experience: 0,
             level: 1,
-        }
+        },
     ));
 }
