@@ -1,9 +1,13 @@
+mod enemies;
+mod level;
 mod player;
 mod sprite;
 mod state;
 mod ui;
 
+use enemies::EnemySpawnerPlugin;
 // pub use crate::player::CharacterLife;
+use level::LevelPlugin;
 use player::PlayerPlugin;
 use ui::GameUiPlugin;
 
@@ -33,7 +37,9 @@ fn main() {
         .add_state::<GameState>()
         .add_systems(Startup, setup)
         .add_plugins(GameUiPlugin)
+        .add_plugins(LevelPlugin)
         .add_plugins(PlayerPlugin)
+        .add_plugins(EnemySpawnerPlugin)
         .add_systems(OnEnter(GameState::GameOver), despawn_game_play)
         .run();
 }
@@ -45,6 +51,15 @@ fn despawn_game_play(mut commands: Commands, entities: Query<Entity, With<Gamepl
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle { ..default() });
+    commands.spawn(Camera2dBundle {
+        transform: Transform::from_xyz(0., 0., 0.),
+        projection: OrthographicProjection {
+            far: 1000.,
+            near: -1000.,
+            scale: 0.5,
+            ..default()
+        },
+        ..default()
+    });
     // commands.spawn()gcc=
 }

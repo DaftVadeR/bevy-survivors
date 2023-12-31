@@ -1,7 +1,7 @@
 // use crate::player::CharacterLife;
 use bevy::prelude::*;
 
-use crate::player::{Player};
+use crate::player::Player;
 use crate::sprite::Health;
 use crate::state::{GameState, GameplayOnly};
 
@@ -10,7 +10,7 @@ pub struct GameUiPlugin;
 impl Plugin for GameUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, ui_setup)
-        .add_systems(PostUpdate, ui_update);
+            .add_systems(PostUpdate, ui_update);
 
         // // simple "facilitator" schedules benefit from simpler single threaded scheduling
         // let mut main_schedule = Schedule::new(Main);
@@ -40,9 +40,8 @@ fn ui_setup(mut commands: Commands) {
                 //XXX using Px here because UI isn't based on camera size, just window size
                 width: Val::Percent(5.0),
                 height: Val::Percent(2.0),
-                 
+
                 // size: Size::new(Val::Percent(5.0), Val::Percent(2.0)),
-                
                 left: Val::Percent(47.5),
                 right: Val::Auto,
                 top: Val::Percent(60.0),
@@ -111,18 +110,18 @@ fn ui_setup(mut commands: Commands) {
     //                 HealthUiValue
     //             )
     //         );
-            // parent.spawn((
-            //     TextBundle::from_section(
-            //         "Orange: nothing counted yet".to_string(),
-            //         TextStyle {
-            //             font_size: 80.0,
-            //             color: Color::ORANGE,
-            //             ..default()
-            //         },
-            //     ),
-            //     OrangeCount,
-            // ));
-        // });
+    // parent.spawn((
+    //     TextBundle::from_section(
+    //         "Orange: nothing counted yet".to_string(),
+    //         TextStyle {
+    //             font_size: 80.0,
+    //             color: Color::ORANGE,
+    //             ..default()
+    //         },
+    //     ),
+    //     OrangeCount,
+    // ));
+    // });
 }
 
 fn ui_update(
@@ -131,15 +130,15 @@ fn ui_update(
     player_query: Query<&Health, With<Player>>,
     mut ui_health_query: Query<&mut Style, With<HealthUiValue>>,
     // assets: Res<AssetServer>
-){
+) {
     // let health = player_query.single();
 
-    // let mut health_block = ui_health_query.single_mut(); 
+    // let mut health_block = ui_health_query.single_mut();
 
     // health_block.width = Val::Percent(health.0);
 
     // health_lbl.
- 
+
     // for (mut health_lbl) in ui_health_query.iter_mut() {
 
     // }

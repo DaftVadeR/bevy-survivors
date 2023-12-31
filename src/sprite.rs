@@ -31,7 +31,8 @@ pub struct AnimationIndices {
     pub last: usize,
 }
 
+#[derive(Component, Deref, DerefMut)]
+pub struct AnimationTimer(pub Timer);
+
 #[derive(Component, Debug)]
 pub struct Health(pub f32);
-
-
